@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX ARENA // Esports & Console Lounge</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Chakra Petch, Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Chakra Petch', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            void: '#07090E',
+            panel: '#0D111A',
+            panelLight: '#141B29',
+            emeraldHud: '#10B981',
+            cyanHud: '#06B6D4',
+            violetHud: '#8B5CF6',
+            twitchHud: '#9146FF',
+            amberHud: '#F59E0B',
+            crimsonHud: '#F43F5E',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --accent-primary: #10B981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+    }
+
+    body {
+      background-color: #07090E;
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 10%, rgba(139, 92, 246, 0.08) 0%, transparent 45%);
+    }
+
+    .hud-glass {
+      background: rgba(13, 17, 26, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hud-card {
+      background: linear-gradient(180deg, rgba(20, 27, 41, 0.85) 0%, rgba(13, 17, 26, 0.95) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .accent-text { color: var(--accent-primary); }
+    .accent-bg { background-color: var(--accent-primary); }
+    .accent-border { border-color: var(--accent-primary); }
+    .accent-shadow { box-shadow: 0 0 28px var(--accent-glow); }
+
+    .cyber-grid {
+      background-size: 40px 40px;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    }
+
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #07090E; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+  </style>
+</head>
+<body class="text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-emeraldHud selection:text-void">
+
+  <!-- ======================================================================= -->
+  <!-- TOP ROLE SWITCHER & PORTFOLIO / SAAS COMMAND TICKER                     -->
+  <!-- ======================================================================= -->
+  <div class="sticky top-0 z-50 bg-[#05070B]/95 backdrop-blur-xl border-b border-white/10 px-3 sm:px-6 py-2">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 text-xs">
+        <span class="px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wider bg-white/5 border border-white/10 accent-text">
+          WHITE-LABEL OS v2.4
+        </span>
+        <span class="hidden lg:inline text-slate-400">
+          Switch views to test live booking sync, WhatsApp Magic Links &amp; Brand Customizer:
+        </span>
+      </div>
+
+      <!-- Dual Portal Switcher -->
+      <div class="flex items-center bg-panel p-1 rounded-xl border border-white/10">
+        <button id="nav-role-customer" onclick="switchPortal('customer')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 accent-bg text-void accent-shadow">
+          <i class="fa-solid fa-gamepad"></i>
+          <span>Customer Portal</span>
+        </button>
+        <button id="nav-role-owner" onclick="switchPortal('owner')" class="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+          <i class="fa-solid fa-shield-halved text-violetHud"></i>
+          <span>Owner Command</span>
+          <span id="top-pending-pill" class="ml-0.5 px-1.5 py-0.2 rounded-full bg-amberHud text-void font-mono text-[10px] font-extrabold">1</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MAGIC WHATSAPP ACTION INTERCEPT BANNER (?action=accept|hold|decline)    -->
+  <!-- ======================================================================= -->
+  <div id="magic-action-banner" class="hidden bg-gradient-to-r from-emerald-950/90 via-panel to-violet-950/90 border-b border-emeraldHud/40 px-4 py-4">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-start gap-3.5 text-center md:text-left">
+        <div id="magic-icon-box" class="w-11 h-11 rounded-xl bg-emeraldHud/20 border border-emeraldHud/40 text-emeraldHud flex items-center justify-center shrink-0 mx-auto md:mx-0">
+          <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+            <span class="px-2 py-0.5 rounded bg-emeraldHud/20 text-emeraldHud font-mono text-[10px] font-bold uppercase">Magic WhatsApp Action Executed</span>
+            <span id="magic-booking-id" class="font-mono text-xs text-slate-300 font-bold">#APX-1042</span>
+          </div>
+          <h3 id="magic-headline" class="font-display font-bold text-lg sm:text-xl text-white mt-0.5">
+            Booking Marked as CONFIRMED!
+          </h3>
+          <p id="magic-subtext" class="text-xs text-slate-300 mt-0.5">
+            Record updated in Owner Command. Tap below to send the pre-typed confirmation to the customer on WhatsApp:
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 shrink-0">
+        <a id="magic-wa-reply-btn" href="#" target="_blank" rel="noopener noreferrer" class="px-5 py-3 rounded-xl bg-emeraldHud hover:brightness-110 text-void font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition-all">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>Send Pre-Typed Reply to Customer</span>
+        </a>
+        <button onclick="dismissMagicBanner()" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs" title="Dismiss">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- PORTAL 1: CUSTOMER EXPERIENCE                                           -->
+  <!-- ======================================================================= -->
+  <div id="portal-customer">
+    <!-- HEADER -->
+    <header class="hud-glass border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-xl accent-bg p-[1.5px] accent-shadow">
+            <div class="w-full h-full bg-void rounded-[10px] flex items-center justify-center">
+              <i class="fa-solid fa-bolt accent-text text-lg"></i>
+            </div>
+          </div>
+          <div>
+            <span id="brand-header-name" class="font-display font-bold text-xl sm:text-2xl tracking-wider text-white uppercase block leading-none">
+              APEX ARENA
+            </span>
+            <span id="brand-header-sub" class="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400 block mt-1">
+              KALYAN • ESPORTS &amp; PS5 LOUNGE
+            </span>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+          <a href="#tracker" class="hover:text-white transition-colors">Track Slot</a>
+          <a href="#vault" class="hover:text-white transition-colors">Game Vault</a>
+          <a href="#tariffs" class="hover:text-white transition-colors">Tariffs</a>
+          <a href="#reserve" class="hover:text-white transition-colors">Reserve Rig</a>
+        </nav>
+
+        <div class="flex items-center gap-2.5">
+          <button onclick="scrollToTracker()" class="hidden sm:inline-flex px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 items-center gap-1.5 transition-all">
+            <i class="fa-solid fa-magnifying-glass accent-text"></i>
+            <span>Track Pass</span>
+          </button>
+          <a href="#reserve" class="px-4 sm:px-5 py-2.5 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-xs sm:text-sm tracking-wide transition-all accent-shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>Book Slot</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- TWITCH LIVE TOURNAMENT STREAM BAR -->
+    <div id="cust-twitch-bar" class="bg-gradient-to-r from-twitchHud/25 via-panel to-twitchHud/25 border-b border-twitchHud/30 px-4 py-2.5">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2.5 text-center sm:text-left">
+          <span class="px-2 py-0.5 rounded bg-crimsonHud text-white font-mono font-bold text-[10px] uppercase tracking-wider animate-pulse flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-white"></span> TWITCH LIVE
+          </span>
+          <span class="text-slate-200">
+            <i class="fa-brands fa-twitch text-twitchHud mr-1"></i>
+            <strong id="twitch-stream-title">Friday Night 5v5 Valorant Customs</strong> — Streaming live from Main Stage!
+          </span>
+        </div>
+        <button onclick="openTwitchDeck()" class="px-3.5 py-1 rounded-lg bg-twitchHud hover:bg-purple-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-play"></i>
+          <span>Open Stream Deck</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- HERO & INTERACTIVE FLOOR RADAR -->
+    <section class="relative cyber-grid pt-10 pb-14 sm:pt-14 sm:pb-20 border-b border-white/10 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid lg:grid-cols-12 gap-10 items-center">
+          <!-- Hero Left -->
+          <div class="lg:col-span-7 text-center lg:text-left">
+            <!-- Dynamic Open/Closed Pill -->
+            <div id="hero-status-badge" class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full hud-glass mb-6">
+              <span class="relative flex h-2.5 w-2.5">
+                <span id="hero-status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emeraldHud opacity-75"></span>
+                <span id="hero-status-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emeraldHud"></span>
+              </span>
+              <span id="hero-status-text" class="font-mono text-xs font-bold tracking-wider text-emeraldHud uppercase">
+                ARENA ONLINE • ACCEPTING INSTANT BOOKINGS
+              </span>
+            </div>
+
+            <h1 id="brand-hero-headline" class="font-display font-bold text-4xl sm:text-6xl lg:text-7xl tracking-tight text-white uppercase leading-[1.03]">
+              NEXT-GEN ESPORTS.<br />
+              <span class="accent-text">ZERO LATENCY.</span>
+            </h1>
+
+            <p id="brand-hero-desc" class="mt-5 text-slate-300 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              Equipped with <strong class="text-white">RTX 4070 Ti 240Hz Pro Rigs</strong>, <strong class="text-white">4K 120Hz PS5 Lounge Pods</strong>, and dual 1Gbps leased-line fiber. Reserve your station online and get instant WhatsApp confirmation.
+            </p>
+
+            <!-- Hero Action Buttons -->
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+              <a href="#reserve" class="w-full sm:w-auto px-7 py-4 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-sm sm:text-base tracking-wide transition-all accent-shadow flex items-center justify-center gap-2">
+                <i class="fa-solid fa-ticket"></i>
+                <span>Reserve Your Station</span>
+              </a>
+              <button onclick="openTwitchDeck()" class="w-full sm:w-auto px-6 py-4 rounded-xl hud-glass hover:bg-white/10 text-white font-semibold text-sm sm:text-base transition-all flex items-center justify-center gap-2">
+                <i class="fa-brands fa-twitch text-twitchHud text-lg"></i>
+                <span>Watch Arena Live</span>
+              </button>
+            </div>
+
+            <!-- Hardware Telemetry Strip -->
+            <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-7 border-t border-white/10">
+              <div class="hud-card rounded-xl p-3.5">
+                <div class="font-mono text-[10px] uppercase text-slate-400">GPU / Display</div>
+                <div class="font-display font-bold text-lg text-white mt-0.5">RTX 4070 Ti</div>
+                <div class="font-mono text-[11px] accent-text">240Hz Zowie</div>
+              </div>
+              <div class="hud-card rounded-xl p-3.5">
+                <div class="font-mono text-[10px] uppercase text-slate-400">Console Zone</div>
+                <div class="font-display font-bold text-lg text-white mt-0.5">PS5 4K HDR</div>
+                <div class="font-mono text-[11px] text-violetHud">DualSense Edge</div>
+              </div>
+              <div class="hud-card rounded-xl p-3.5">
+                <div class="font-mono text-[10px] uppercase text-slate-400">Network Ping</div>
+                <div class="font-display font-bold text-lg text-white mt-0.5">1 Gbps Dual</div>
+                <div class="font-mono text-[11px] text-cyanHud">~4ms Mumbai</div>
+              </div>
+              <div class="hud-card rounded-xl p-3.5">
+                <div class="font-mono text-[10px] uppercase text-slate-400">Starting Tariff</div>
+                <div id="hero-rate-display" class="font-display font-bold text-lg text-white mt-0.5">₹80 / hr</div>
+                <div class="font-mono text-[11px] text-amberHud">Combo Passes</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Right: Live Floor Radar & Operating Hours -->
+          <div class="lg:col-span-5">
+            <div class="hud-card rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+              <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <span class="font-display font-bold text-lg text-white uppercase tracking-wider flex items-center gap-2">
+                  <i class="fa-solid fa-satellite-dish accent-text"></i> Live Floor Telemetry
+                </span>
+                <span class="font-mono text-[11px] px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-slate-300">
+                  REAL-TIME
+                </span>
+              </div>
+
+              <!-- Live Free Rigs Progress Bars -->
+              <div class="mt-5 space-y-4">
+                <div class="p-4 rounded-xl bg-void/80 border border-white/10">
+                  <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="font-semibold text-slate-200 flex items-center gap-2">
+                      <i class="fa-solid fa-desktop text-cyanHud"></i> Pro RTX PC Rigs
+                    </span>
+                    <span id="radar-pc-text" class="font-mono font-bold text-cyanHud">14 / 20 FREE</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div id="radar-pc-bar" class="h-full bg-cyanHud rounded-full transition-all duration-500" style="width: 70%"></div>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-void/80 border border-white/10">
+                  <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="font-semibold text-slate-200 flex items-center gap-2">
+                      <i class="fa-brands fa-playstation text-violetHud"></i> PS5 4K Lounge Pods
+                    </span>
+                    <span id="radar-ps5-text" class="font-mono font-bold text-violetHud">3 / 4 FREE</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div id="radar-ps5-bar" class="h-full bg-violetHud rounded-full transition-all duration-500" style="width: 75%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Operating Hours -->
+              <div class="mt-5 pt-4 border-t border-white/10 space-y-2.5 text-xs">
+                <div class="flex items-center justify-between text-slate-300">
+                  <span><i class="fa-regular fa-clock accent-text mr-1.5"></i> Mon – Fri Hours</span>
+                  <span id="display-weekday-hours" class="font-mono font-bold text-white">10:00 AM – 11:00 PM</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-300">
+                  <span><i class="fa-solid fa-fire text-amberHud mr-1.5"></i> Sat – Sun Hours</span>
+                  <span id="display-weekend-hours" class="font-mono font-bold accent-text">09:00 AM – 01:00 AM</span>
+                </div>
+                <div class="flex items-start gap-2 text-slate-400 pt-2 border-t border-white/5">
+                  <i class="fa-solid fa-location-dot accent-text mt-0.5"></i>
+                  <span id="display-cafe-address">2nd Floor, Orion Plaza, Khadakpada Circle, Kalyan West</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- LIVE CUSTOMER SLOT TRACKER BAR                                        -->
+    <!-- ===================================================================== -->
+    <section id="tracker" class="py-10 bg-panel/60 border-b border-white/10">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="hud-card rounded-2xl p-5 sm:p-7">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span class="font-mono text-[11px] uppercase tracking-widest accent-text font-bold">Instant Pass Verification</span>
+              <h2 class="font-display font-bold text-2xl sm:text-3xl text-white uppercase mt-0.5">
+                Track Your Booking Status
+              </h2>
+              <p class="text-xs text-slate-400 mt-1">
+                Enter your Booking ID (e.g., <span class="font-mono text-slate-200">APX-1042</span>) or 10-digit phone number to check if your slot is Confirmed, On Hold, or Declined.
+              </p>
+            </div>
+
+            <form id="tracker-form" class="flex w-full md:w-auto gap-2">
+              <input id="tracker-query" type="text" placeholder="APX-1042 or 98204..." class="w-full md:w-64 px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emeraldHud" />
+              <button type="submit" class="px-5 py-3 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-xs sm:text-sm shrink-0 transition-all">
+                Check Status
+              </button>
+            </form>
+          </div>
+
+          <!-- Tracker Output Result -->
+          <div id="tracker-result-box" class="hidden mt-5 pt-5 border-t border-white/10">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- FILTERABLE GAME VAULT                                                 -->
+    <!-- ===================================================================== -->
+    <section id="vault" class="py-16 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8">
+          <div>
+            <span class="font-mono text-xs uppercase tracking-[0.2em] accent-text font-bold">Pre-Patched &amp; Tournament Ready</span>
+            <h2 class="font-display font-bold text-3xl sm:text-5xl text-white uppercase mt-1">
+              Installed Game Vault
+            </h2>
+          </div>
+
+          <div id="vault-filters" class="flex flex-wrap gap-2">
+            <button data-genre="All" class="vfilter-btn active px-4 py-2 rounded-xl text-xs font-bold accent-bg text-void transition-all">All Titles</button>
+            <button data-genre="FPS / Tactical" class="vfilter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-panel text-slate-300 border border-white/10 hover:border-white/25 transition-all">FPS / Tactical</button>
+            <button data-genre="PS5 Exclusives" class="vfilter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-panel text-slate-300 border border-white/10 hover:border-white/25 transition-all">PS5 Exclusives</button>
+            <button data-genre="Sports & Fighting" class="vfilter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-panel text-slate-300 border border-white/10 hover:border-white/25 transition-all">Sports &amp; Fighting</button>
+            <button data-genre="Co-op & Open World" class="vfilter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-panel text-slate-300 border border-white/10 hover:border-white/25 transition-all">Co-op &amp; Open World</button>
+          </div>
+        </div>
+
+        <div id="vault-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TRANSPARENT INR TARIFFS & SQUAD PASSES                                -->
+    <!-- ===================================================================== -->
+    <section id="tariffs" class="py-16 bg-panel/40 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="font-mono text-xs uppercase tracking-[0.2em] text-violetHud font-bold">Zero Online Platform Fees</span>
+          <h2 class="font-display font-bold text-3xl sm:text-5xl text-white uppercase mt-1">
+            Arena Tariffs &amp; Squad Passes
+          </h2>
+          <p class="text-slate-400 text-sm mt-2">
+            Reserve online for free and pay via Cash or UPI directly at the arena counter.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Tariff 1: PC Hourly -->
+          <div class="hud-card rounded-2xl p-6 flex flex-col justify-between hover:border-cyanHud/50 transition-all">
+            <div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-cyanHud/15 text-cyanHud font-bold uppercase">PC Solo Rig</span>
+              <h3 class="font-display font-bold text-2xl text-white mt-4">Pro RTX Hourly</h3>
+              <div class="mt-2 flex items-baseline gap-1">
+                <span id="tariff-pc-solo" class="font-mono font-bold text-4xl text-white">₹80</span>
+                <span class="text-slate-400 text-xs">/ hr / PC</span>
+              </div>
+              <ul class="mt-5 space-y-2.5 text-xs text-slate-300">
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyanHud"></i> RTX 4070 Ti + 240Hz Monitor</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyanHud"></i> HyperX Cloud II &amp; Logitech Pro</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyanHud"></i> Instant Steam / Riot / Epic Login</li>
+              </ul>
+            </div>
+            <button onclick="quickSelectBooking('PC Rig', 1, 1)" class="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-cyanHud hover:text-void border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all">
+              Select Solo Rig
+            </button>
+          </div>
+
+          <!-- Tariff 2: 3-Hr Grinder Combo -->
+          <div class="hud-card rounded-2xl p-6 flex flex-col justify-between border-2 accent-border accent-shadow relative">
+            <span id="tariff-combo-badge" class="absolute -top-3 right-5 px-3 py-0.5 rounded-full accent-bg text-void font-mono text-[10px] font-extrabold uppercase">
+              SAVE 17%
+            </span>
+            <div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-white/10 accent-text font-bold uppercase">Most Popular</span>
+              <h3 class="font-display font-bold text-2xl text-white mt-4">3-Hr Grinder Pass</h3>
+              <div class="mt-2 flex items-baseline gap-1">
+                <span id="tariff-pc-combo" class="font-mono font-bold text-4xl accent-text">₹200</span>
+                <span class="text-slate-400 text-xs">/ 3 hrs</span>
+              </div>
+              <ul class="mt-5 space-y-2.5 text-xs text-slate-200">
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check accent-text"></i> 3 Uninterrupted Hours on RTX PC</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check accent-text"></i> Ideal for Ranked Valo / CS2 Grind</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check accent-text"></i> Priority Seat Assignment</li>
+              </ul>
+            </div>
+            <button onclick="quickSelectBooking('PC Rig', 1, 3)" class="mt-6 w-full py-3 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-xs uppercase tracking-wider transition-all">
+              Book 3-Hr Pass
+            </button>
+          </div>
+
+          <!-- Tariff 3: PS5 4K Lounge Pod -->
+          <div class="hud-card rounded-2xl p-6 flex flex-col justify-between hover:border-violetHud/50 transition-all">
+            <div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-violetHud/15 text-violetHud font-bold uppercase">PS5 Couch Pod</span>
+              <h3 class="font-display font-bold text-2xl text-white mt-4">4K PS5 Lounge</h3>
+              <div class="mt-2 flex items-baseline gap-1">
+                <span id="tariff-ps5-pod" class="font-mono font-bold text-4xl text-white">₹180</span>
+                <span class="text-slate-400 text-xs">/ hr / pod</span>
+              </div>
+              <ul class="mt-5 space-y-2.5 text-xs text-slate-300">
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-violetHud"></i> Up to 4 Players on 1 Pod (₹45/head)</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-violetHud"></i> 65" 4K 120Hz OLED + 4 Controllers</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-violetHud"></i> FC 25, Tekken 8, Mortal Kombat 1</li>
+              </ul>
+            </div>
+            <button onclick="quickSelectBooking('PS5 Lounge Pod', 4, 1)" class="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-violetHud hover:text-white border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all">
+              Book PS5 Pod
+            </button>
+          </div>
+
+          <!-- Tariff 4: 5-Stack Bootcamp Room -->
+          <div class="hud-card rounded-2xl p-6 flex flex-col justify-between hover:border-amberHud/50 transition-all">
+            <div>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-amberHud/15 text-amberHud font-bold uppercase">5v5 Squad</span>
+              <h3 class="font-display font-bold text-2xl text-white mt-4">5-Stack Bootcamp</h3>
+              <div class="mt-2 flex items-baseline gap-1">
+                <span id="tariff-bootcamp" class="font-mono font-bold text-4xl text-white">₹350</span>
+                <span class="text-slate-400 text-xs">/ hr (5 PCs)</span>
+              </div>
+              <ul class="mt-5 space-y-2.5 text-xs text-slate-300">
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-amberHud"></i> 5 Side-by-Side Tournament PCs</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-amberHud"></i> Zero-Delay LAN Comms Setup</li>
+                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-amberHud"></i> Free Energy Drink on 3+ Hr Booking</li>
+              </ul>
+            </div>
+            <button onclick="quickSelectBooking('5-Stack Bootcamp', 5, 1)" class="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-amberHud hover:text-void border border-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all">
+              Book 5-Stack Room
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- INTERACTIVE SLOT RESERVATION & WHATSAPP MAGIC LINK GENERATOR          -->
+    <!-- ===================================================================== -->
+    <section id="reserve" class="py-16 sm:py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="font-mono text-xs uppercase tracking-[0.2em] accent-text font-bold">Instant Ticket + 1-Tap WhatsApp Dispatch</span>
+          <h2 class="font-display font-bold text-3xl sm:text-5xl text-white uppercase mt-1">
+            Reserve Your Station
+          </h2>
+          <p class="text-slate-400 text-sm mt-2">
+            Generate your QR boarding pass and dispatch your request with built-in 1-tap Accept/Hold/Decline links for the cafe owner.
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8 items-start">
+          <!-- Left Form -->
+          <form id="reservation-form" class="lg:col-span-7 hud-card rounded-2xl p-5 sm:p-8 space-y-6">
+            <!-- Step 1: Visual Rig Type Selector -->
+            <div>
+              <label class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">
+                1. Choose Station Class
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button type="button" onclick="selectRigClass('PC Rig')" id="rig-btn-pc" class="rig-select-btn p-3.5 rounded-xl border-2 border-cyanHud bg-cyanHud/10 text-left transition-all">
+                  <div class="flex items-center justify-between">
+                    <i class="fa-solid fa-desktop text-cyanHud text-lg"></i>
+                    <span class="font-mono text-[10px] text-cyanHud font-bold">240HZ</span>
+                  </div>
+                  <div class="font-display font-bold text-base text-white mt-2">Pro RTX PC Rig</div>
+                  <div id="rig-card-pc-rate" class="font-mono text-xs text-slate-400">₹80 / hr / PC</div>
+                </button>
+
+                <button type="button" onclick="selectRigClass('PS5 Lounge Pod')" id="rig-btn-ps5" class="rig-select-btn p-3.5 rounded-xl border border-white/10 bg-void/70 text-left hover:border-white/25 transition-all">
+                  <div class="flex items-center justify-between">
+                    <i class="fa-brands fa-playstation text-violetHud text-lg"></i>
+                    <span class="font-mono text-[10px] text-violetHud font-bold">4K HDR</span>
+                  </div>
+                  <div class="font-display font-bold text-base text-white mt-2">PS5 Lounge Pod</div>
+                  <div id="rig-card-ps5-rate" class="font-mono text-xs text-slate-400">₹180 / hr (4P)</div>
+                </button>
+
+                <button type="button" onclick="selectRigClass('5-Stack Bootcamp')" id="rig-btn-boot" class="rig-select-btn p-3.5 rounded-xl border border-white/10 bg-void/70 text-left hover:border-white/25 transition-all">
+                  <div class="flex items-center justify-between">
+                    <i class="fa-solid fa-people-group text-amberHud text-lg"></i>
+                    <span class="font-mono text-[10px] text-amberHud font-bold">5V5 LAN</span>
+                  </div>
+                  <div class="font-display font-bold text-base text-white mt-2">5-Stack Bootcamp</div>
+                  <div id="rig-card-boot-rate" class="font-mono text-xs text-slate-400">₹350 / hr (5 PCs)</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Gamer Details -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label for="book-name" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Gamer Name / IGN *
+                </label>
+                <input id="book-name" type="text" required placeholder="e.g., Aryan / ShadowKYN" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label for="book-phone" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Your 10-Digit WhatsApp *
+                </label>
+                <input id="book-phone" type="tel" required placeholder="e.g., 9820451120" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emeraldHud" />
+              </div>
+            </div>
+
+            <!-- Step 3: Squad Size & Game Note -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Squad Headcount (1 – 10)
+                </label>
+                <div class="flex items-center justify-between bg-void border border-white/15 rounded-xl px-3 py-1.5">
+                  <button type="button" onclick="changeHeadcount(-1)" class="w-9 h-9 rounded-lg bg-panelLight hover:bg-white/10 text-white font-bold">
+                    <i class="fa-solid fa-minus"></i>
+                  </button>
+                  <div class="text-center">
+                    <span id="book-people-num" class="font-mono font-bold text-xl text-white">1</span>
+                    <span id="book-units-label" class="font-mono text-[10px] text-slate-400 block">1 PC Station</span>
+                  </div>
+                  <button type="button" onclick="changeHeadcount(1)" class="w-9 h-9 rounded-lg bg-panelLight hover:bg-white/10 text-white font-bold">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label for="book-game" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Primary Game (Optional)
+                </label>
+                <input id="book-game" type="text" placeholder="e.g., Valorant, FC 25, CS2" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emeraldHud" />
+              </div>
+            </div>
+
+            <!-- Step 4: Date, Time & Duration -->
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label for="book-date" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Session Date
+                </label>
+                <input id="book-date" type="date" required class="w-full px-3.5 py-3 rounded-xl bg-void border border-white/15 font-mono text-xs sm:text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+
+              <div>
+                <label for="book-time" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Start Time
+                </label>
+                <select id="book-time" class="w-full px-3.5 py-3 rounded-xl bg-void border border-white/15 font-mono text-xs sm:text-sm text-white focus:outline-none focus:border-emeraldHud">
+                  <option value="10:00 AM">10:00 AM</option>
+                  <option value="12:00 PM">12:00 PM</option>
+                  <option value="02:00 PM">02:00 PM</option>
+                  <option value="04:00 PM">04:00 PM</option>
+                  <option value="06:00 PM" selected>06:00 PM</option>
+                  <option value="08:00 PM">08:00 PM</option>
+                  <option value="10:00 PM">10:00 PM</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="book-duration" class="block font-mono text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Duration
+                </label>
+                <select id="book-duration" class="w-full px-3.5 py-3 rounded-xl bg-void border border-white/15 font-mono text-xs sm:text-sm text-white focus:outline-none focus:border-emeraldHud">
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours (Combo)</option>
+                  <option value="5">5 Hours (Marathon)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Inline Error -->
+            <div id="book-error-box" class="hidden p-3.5 rounded-xl bg-crimsonHud/15 border border-crimsonHud/40 text-rose-300 text-xs font-medium">
+              <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+              <span id="book-error-msg">Please enter your gamer name and a valid 10-digit WhatsApp number.</span>
+            </div>
+
+            <button type="submit" class="w-full py-4 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-sm sm:text-base tracking-wide transition-all accent-shadow flex items-center justify-center gap-2">
+              <i class="fa-solid fa-qrcode"></i>
+              <span>Generate Boarding Pass &amp; WhatsApp Link</span>
+            </button>
+          </form>
+
+          <!-- Right Live Summary HUD -->
+          <div class="lg:col-span-5 hud-card rounded-2xl p-6 shadow-2xl">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+              <h3 class="font-display font-bold text-xl text-white uppercase">Session Telemetry</h3>
+              <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-emeraldHud/15 text-emeraldHud font-bold">PAY AT COUNTER</span>
+            </div>
+
+            <div class="mt-4 space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Station Class</span>
+                <span id="est-rig" class="font-bold text-white">Pro RTX PC Rig</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Squad Allocation</span>
+                <span id="est-squad" class="font-mono text-xs sm:text-sm text-slate-200">1 Player (1 PC)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Scheduled Slot</span>
+                <span id="est-slot" class="font-mono text-xs sm:text-sm accent-text font-bold">Today • 06:00 PM</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Session Length</span>
+                <span id="est-duration" class="font-mono text-xs sm:text-sm text-slate-200">1 Hour</span>
+              </div>
+              <div id="est-discount-row" class="hidden flex justify-between text-xs font-mono text-emeraldHud bg-emeraldHud/10 px-3 py-2 rounded-lg border border-emeraldHud/25">
+                <span>Promo Applied</span>
+                <span id="est-discount-text">3-Hr Combo Discount</span>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-5 border-t border-white/10 flex items-baseline justify-between">
+              <div>
+                <span class="font-mono text-[10px] uppercase text-slate-400 block">Estimated Counter Total</span>
+                <span id="est-split" class="font-mono text-xs text-slate-400">₹80 per player</span>
+              </div>
+              <span id="est-total" class="font-mono font-bold text-4xl accent-text">₹80</span>
+            </div>
+
+            <div class="mt-5 p-3.5 rounded-xl bg-void/80 border border-white/10 text-[11px] text-slate-400 leading-relaxed">
+              <i class="fa-brands fa-whatsapp text-emeraldHud mr-1"></i>
+              Submitting embeds <strong class="text-slate-200">3 Magic Action Links</strong> inside your WhatsApp booking message so the owner can Accept, Hold, or Decline in one tap.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#05070B] border-t border-white/10 py-8 text-center text-xs text-slate-500">
+      <p id="footer-brand-copy">&copy; 2026 APEX ARENA GAMING LOUNGE • White-Label Esports Booking OS</p>
+    </footer>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- PORTAL 2: OWNER COMMAND CENTER & WHITE-LABEL STUDIO                     -->
+  <!-- ======================================================================= -->
+  <div id="portal-owner" class="hidden min-h-screen pb-20">
+    <!-- ADMIN PIN GATE -->
+    <div id="admin-lock-screen" class="max-w-md mx-auto px-4 pt-16 sm:pt-24">
+      <div class="hud-card rounded-2xl p-6 sm:p-8 text-center shadow-2xl">
+        <div class="w-14 h-14 rounded-2xl bg-violetHud/15 border border-violetHud/40 text-violetHud flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-fingerprint text-2xl"></i>
+        </div>
+        <h2 class="font-display font-bold text-2xl sm:text-3xl text-white uppercase">Owner Command Center</h2>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          Manage live bookings, dispatch 1-tap WhatsApp replies, or rebrand this entire platform for any gaming cafe.
+        </p>
+
+        <div class="mt-6">
+          <input id="admin-pin-field" type="password" maxlength="4" placeholder="1234" class="w-40 mx-auto text-center tracking-[0.5em] font-mono text-2xl py-3 px-4 rounded-xl bg-void border border-white/15 text-white focus:outline-none focus:border-violetHud" />
+          <p id="admin-pin-err" class="hidden text-xs text-crimsonHud mt-2 font-medium">Invalid PIN. Default demo PIN is 1234.</p>
+        </div>
+
+        <div class="mt-6 space-y-2.5">
+          <button onclick="unlockAdminWithPin()" class="w-full py-3 rounded-xl bg-violetHud hover:bg-purple-500 text-white font-bold text-sm transition-all">
+            Authenticate &amp; Enter
+          </button>
+          <button onclick="instantDemoAdmin()" class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 accent-text font-mono font-bold text-xs uppercase tracking-wider transition-all">
+            <i class="fa-solid fa-bolt mr-1"></i> Instant Demo Access (PIN: 1234)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNLOCKED OWNER COMMAND DASHBOARD -->
+    <div id="admin-workspace" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <!-- Top Header & Sub-Navigation Tabs -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-violetHud/20 text-violetHud font-bold uppercase">Admin OS</span>
+            <span id="admin-cafe-title-tag" class="font-mono text-xs text-slate-400">APEX ARENA</span>
+          </div>
+          <h1 class="font-display font-bold text-3xl sm:text-4xl text-white uppercase mt-1">
+            Arena Operations &amp; Rebrand Studio
+          </h1>
+        </div>
+
+        <!-- Admin Tabs + Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex bg-panel p-1 rounded-xl border border-white/10">
+            <button id="tab-btn-ops" onclick="switchAdminTab('ops')" class="px-3.5 py-2 rounded-lg text-xs font-bold bg-violetHud text-white transition-all">
+              <i class="fa-solid fa-list-check mr-1.5"></i>Bookings &amp; Floor
+            </button>
+            <button id="tab-btn-brand" onclick="switchAdminTab('brand')" class="px-3.5 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition-all">
+              <i class="fa-solid fa-palette mr-1.5 text-amberHud"></i>White-Label Studio
+            </button>
+          </div>
+
+          <button onclick="openWalkInModal()" class="px-3.5 py-2.5 rounded-xl accent-bg text-void font-extrabold text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> Walk-In
+          </button>
+          <button onclick="downloadCSVReport()" class="px-3.5 py-2.5 rounded-xl bg-panel hover:bg-panelLight border border-white/10 text-slate-200 font-semibold text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-file-export accent-text"></i> CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- ADMIN TAB A: LIVE BOOKINGS REGISTER & FLOOR CONTROLS                -->
+      <!-- =================================================================== -->
+      <div id="admin-tab-ops" class="mt-6 space-y-6">
+        <!-- 4 Telemetry KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="hud-card rounded-2xl p-5">
+            <div class="flex items-center justify-between font-mono text-[11px] uppercase text-slate-400">
+              <span>Projected Revenue</span>
+              <i class="fa-solid fa-indian-rupee-sign accent-text text-sm"></i>
+            </div>
+            <div id="admin-kpi-rev" class="font-mono font-bold text-3xl accent-text mt-2">₹0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Confirmed + Completed slots</div>
+          </div>
+
+          <div class="hud-card rounded-2xl p-5">
+            <div class="flex items-center justify-between font-mono text-[11px] uppercase text-slate-400">
+              <span>Action Required</span>
+              <i class="fa-solid fa-bell text-amberHud text-sm"></i>
+            </div>
+            <div id="admin-kpi-pending" class="font-mono font-bold text-3xl text-amberHud mt-2">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Pending WhatsApp approvals</div>
+          </div>
+
+          <div class="hud-card rounded-2xl p-5">
+            <div class="flex items-center justify-between font-mono text-[11px] uppercase text-slate-400">
+              <span>Floor Occupancy</span>
+              <i class="fa-solid fa-gauge-high text-cyanHud text-sm"></i>
+            </div>
+            <div id="admin-kpi-occ" class="font-mono font-bold text-3xl text-white mt-2">29%</div>
+            <div id="admin-kpi-rigs-sub" class="text-[11px] text-slate-400 mt-1">14/20 PCs • 3/4 PS5s Free</div>
+          </div>
+
+          <div class="hud-card rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between font-mono text-[11px] uppercase text-slate-400">
+              <span>Master Arena Switch</span>
+              <span id="admin-master-dot" class="w-2.5 h-2.5 rounded-full bg-emeraldHud"></span>
+            </div>
+            <div class="mt-2 flex items-center justify-between">
+              <span id="admin-master-text" class="font-display font-bold text-2xl text-emeraldHud">ONLINE</span>
+              <button onclick="toggleArenaMaster()" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-bold text-white">
+                Toggle
+              </button>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">Syncs live to Customer Hero</div>
+          </div>
+        </div>
+
+        <!-- Quick Floor & Twitch Controls Strip -->
+        <div class="hud-card rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-display font-bold text-lg text-white uppercase">Live Rig Availability &amp; Stream Deck</h3>
+            <p class="text-xs text-slate-400">Adjust free stations or live stream banner in real time.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2 bg-void border border-white/10 rounded-xl px-3 py-2">
+              <span class="font-mono text-xs text-slate-400">Free PCs:</span>
+              <button onclick="stepRigInventory('pc', -1)" class="w-7 h-7 rounded bg-panelLight text-white font-bold text-xs">-</button>
+              <span id="ctrl-free-pc" class="font-mono font-bold text-cyanHud w-6 text-center">14</span>
+              <button onclick="stepRigInventory('pc', 1)" class="w-7 h-7 rounded bg-panelLight text-white font-bold text-xs">+</button>
+            </div>
+
+            <div class="flex items-center gap-2 bg-void border border-white/10 rounded-xl px-3 py-2">
+              <span class="font-mono text-xs text-slate-400">Free PS5:</span>
+              <button onclick="stepRigInventory('ps5', -1)" class="w-7 h-7 rounded bg-panelLight text-white font-bold text-xs">-</button>
+              <span id="ctrl-free-ps5" class="font-mono font-bold text-violetHud w-6 text-center">3</span>
+              <button onclick="stepRigInventory('ps5', 1)" class="w-7 h-7 rounded bg-panelLight text-white font-bold text-xs">+</button>
+            </div>
+
+            <button onclick="toggleTwitchVisibility()" class="px-4 py-2 rounded-xl bg-twitchHud/20 border border-twitchHud/40 text-purple-200 hover:bg-twitchHud/30 text-xs font-bold flex items-center gap-2">
+              <i class="fa-brands fa-twitch text-twitchHud"></i>
+              <span id="ctrl-twitch-state">Twitch Banner: ON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bookings Table / Cards with 1-Tap WhatsApp Dispatch -->
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="font-display font-bold text-2xl text-white uppercase">Customer Reservations &amp; Walk-Ins</h2>
+              <p class="text-xs text-slate-400">Clicking <strong class="text-emeraldHud">Accept</strong>, <strong class="text-amberHud">Hold</strong>, or <strong class="text-crimsonHud">Decline</strong> updates status AND opens WhatsApp with a pre-typed customer reply.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5" id="admin-status-filters">
+              <button onclick="filterAdminList('All')" data-st="All" class="ast-btn active px-3 py-1.5 rounded-lg text-xs font-bold accent-bg text-void">All</button>
+              <button onclick="filterAdminList('Pending')" data-st="Pending" class="ast-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-panel text-slate-300 border border-white/10">Pending</button>
+              <button onclick="filterAdminList('Confirmed')" data-st="Confirmed" class="ast-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-panel text-slate-300 border border-white/10">Confirmed</button>
+              <button onclick="filterAdminList('On Hold')" data-st="On Hold" class="ast-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-panel text-slate-300 border border-white/10">On Hold</button>
+              <button onclick="filterAdminList('Declined')" data-st="Declined" class="ast-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-panel text-slate-300 border border-white/10">Declined</button>
+            </div>
+          </div>
+
+          <!-- Desktop Table -->
+          <div class="hidden lg:block hud-card rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-void/90 border-b border-white/10 font-mono text-[11px] uppercase text-slate-400">
+                    <th class="py-3.5 px-4">Pass ID</th>
+                    <th class="py-3.5 px-4">Gamer &amp; Phone</th>
+                    <th class="py-3.5 px-4">Station &amp; Squad</th>
+                    <th class="py-3.5 px-4">Date &amp; Slot</th>
+                    <th class="py-3.5 px-4">Tariff</th>
+                    <th class="py-3.5 px-4">Status</th>
+                    <th class="py-3.5 px-4 text-right">1-Tap Status + WhatsApp Reply</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-table-rows" class="divide-y divide-white/5 text-sm">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Mobile Cards -->
+          <div id="admin-mobile-cards" class="lg:hidden space-y-3">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- ADMIN TAB B: WHITE-LABEL REBRAND STUDIO (FOR PITCHING MULTIPLE CAFES)-->
+      <!-- =================================================================== -->
+      <div id="admin-tab-brand" class="hidden mt-6">
+        <div class="hud-card rounded-2xl p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+            <div>
+              <span class="font-mono text-xs uppercase tracking-widest text-amberHud font-bold">Multi-Cafe Pitch Customizer</span>
+              <h2 class="font-display font-bold text-2xl sm:text-3xl text-white uppercase mt-0.5">
+                White-Label Brand &amp; Pricing Configurator
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Customize the cafe name, owner WhatsApp number, hourly ₹ tariffs, and accent theme below—changes apply live across the entire website!
+              </p>
+            </div>
+            <button onclick="resetWhiteLabelDefaults()" class="px-4 py-2 rounded-xl bg-crimsonHud/15 hover:bg-crimsonHud/25 border border-crimsonHud/40 text-rose-300 text-xs font-bold shrink-0">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reset Demo Defaults
+            </button>
+          </div>
+
+          <form id="whitelabel-form" class="mt-6 space-y-6">
+            <!-- Theme Accent Presets -->
+            <div>
+              <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-2.5">
+                Brand Accent Theme Preset
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <button type="button" onclick="setBrandTheme('#10B981', 'rgba(16, 185, 129, 0.25)')" class="p-3 rounded-xl bg-void border border-white/15 hover:border-emeraldHud flex items-center gap-2.5 text-xs font-bold text-white">
+                  <span class="w-4 h-4 rounded-full bg-[#10B981]"></span> Cyber Emerald
+                </button>
+                <button type="button" onclick="setBrandTheme('#06B6D4', 'rgba(6, 182, 212, 0.25)')" class="p-3 rounded-xl bg-void border border-white/15 hover:border-cyanHud flex items-center gap-2.5 text-xs font-bold text-white">
+                  <span class="w-4 h-4 rounded-full bg-[#06B6D4]"></span> Electric Cyan
+                </button>
+                <button type="button" onclick="setBrandTheme('#F43F5E', 'rgba(244, 63, 94, 0.25)')" class="p-3 rounded-xl bg-void border border-white/15 hover:border-crimsonHud flex items-center gap-2.5 text-xs font-bold text-white">
+                  <span class="w-4 h-4 rounded-full bg-[#F43F5E]"></span> Crimson Valo
+                </button>
+                <button type="button" onclick="setBrandTheme('#F59E0B', 'rgba(245, 158, 11, 0.25)')" class="p-3 rounded-xl bg-void border border-white/15 hover:border-amberHud flex items-center gap-2.5 text-xs font-bold text-white">
+                  <span class="w-4 h-4 rounded-full bg-[#F59E0B]"></span> Prestige Gold
+                </button>
+              </div>
+            </div>
+
+            <!-- Cafe Identity -->
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Cafe Brand Name</label>
+                <input id="wl-name" type="text" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Area / City Subtitle</label>
+                <input id="wl-sub" type="text" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Owner WhatsApp (10-Digit)</label>
+                <input id="wl-wa" type="tel" maxlength="10" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+            </div>
+
+            <!-- Address & Hours -->
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Full Street Address</label>
+                <input id="wl-address" type="text" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Weekday Hours</label>
+                <input id="wl-weekday" type="text" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Weekend Hours</label>
+                <input id="wl-weekend" type="text" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+            </div>
+
+            <!-- Rates & Rig Counts -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Total PCs</label>
+                <input id="wl-total-pc" type="number" min="1" max="100" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">Total PS5 Pods</label>
+                <input id="wl-total-ps5" type="number" min="0" max="30" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">PC Hourly (₹)</label>
+                <input id="wl-rate-pc" type="number" min="20" max="1000" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">PS5 Pod Hourly (₹)</label>
+                <input id="wl-rate-ps5" type="number" min="50" max="2000" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+              <div>
+                <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1.5">3-Hr Combo (₹)</label>
+                <input id="wl-rate-combo" type="number" min="50" max="3000" class="w-full px-4 py-3 rounded-xl bg-void border border-white/15 font-mono text-sm text-white focus:outline-none focus:border-emeraldHud" />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
+              <span id="wl-saved-toast" class="hidden font-mono text-xs text-emeraldHud font-bold">
+                <i class="fa-solid fa-circle-check mr-1"></i> Brand &amp; Tariff settings applied live!
+              </span>
+              <button type="submit" class="ml-auto px-7 py-3.5 rounded-xl accent-bg hover:brightness-110 text-void font-extrabold text-sm transition-all accent-shadow">
+                Save &amp; Apply White-Label Config
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 1: CUSTOMER QR BOARDING PASS + MAGIC WHATSAPP DISPATCH            -->
+  <!-- ======================================================================= -->
+  <div id="boarding-pass-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+    <div class="hud-card rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeBoardingPass()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-2xl bg-emeraldHud/15 border border-emeraldHud/30 text-emeraldHud flex items-center justify-center mx-auto mb-2.5">
+          <i class="fa-solid fa-ticket text-xl"></i>
+        </div>
+        <h3 class="font-display font-bold text-2xl text-white uppercase">Digital Boarding Pass</h3>
+        <p class="text-xs text-slate-400 mt-1">Send this pass on WhatsApp—the owner gets 1-tap Accept, Hold &amp; Decline links right inside the chat.</p>
+      </div>
+
+      <!-- Ticket Body -->
+      <div class="mt-4 rounded-xl bg-void border border-dashed accent-border p-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div>
+            <span class="font-mono text-[10px] uppercase text-slate-400 block">Pass Identifier</span>
+            <span id="bp-id" class="font-mono font-bold text-lg accent-text">#APX-1042</span>
+          </div>
+          <!-- Crisp SVG QR -->
+          <div class="w-12 h-12 rounded-lg bg-white p-1.5">
+            <svg viewBox="0 0 36 36" class="w-full h-full fill-void">
+              <rect x="2" y="2" width="10" height="10" rx="1"/>
+              <rect x="4" y="4" width="6" height="6" fill="white"/>
+              <rect x="5" y="5" width="4" height="4"/>
+              <rect x="24" y="2" width="10" height="10" rx="1"/>
+              <rect x="26" y="4" width="6" height="6" fill="white"/>
+              <rect x="27" y="5" width="4" height="4"/>
+              <rect x="2" y="24" width="10" height="10" rx="1"/>
+              <rect x="4" y="26" width="6" height="6" fill="white"/>
+              <rect x="5" y="27" width="4" height="4"/>
+              <rect x="15" y="4" width="4" height="4"/>
+              <rect x="15" y="13" width="6" height="6"/>
+              <rect x="4" y="15" width="6" height="4"/>
+              <rect x="24" y="15" width="8" height="4"/>
+              <rect x="16" y="24" width="4" height="8"/>
+              <rect x="24" y="24" width="8" height="8"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-3 space-y-1.5 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Gamer</span>
+            <span id="bp-gamer" class="font-bold text-white">Aryan</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Allocation</span>
+            <span id="bp-rig" class="font-mono text-slate-200">Pro RTX PC Rig (1P)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Schedule</span>
+            <span id="bp-time" class="font-mono accent-text font-bold">22 Nov • 06:00 PM (1 Hr)</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t border-white/10">
+            <span class="text-slate-400">Pay at Counter</span>
+            <span id="bp-total" class="font-mono font-bold text-lg text-white">₹80</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="mt-4 space-y-2.5">
+        <a id="bp-wa-link" href="#" target="_blank" rel="noopener noreferrer" class="w-full py-3.5 rounded-xl bg-emeraldHud hover:brightness-110 text-void font-extrabold text-sm flex items-center justify-center gap-2 transition-all">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>Send to Cafe Owner on WhatsApp</span>
+        </a>
+
+        <!-- Live Simulator Preview of Owner's 3 Magic Links -->
+        <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+          <div class="font-mono text-[10px] uppercase text-slate-400 mb-2 text-center">
+            Preview: Owner's 1-Tap WhatsApp Magic Links
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button id="sim-magic-accept" type="button" class="py-1.5 rounded-lg bg-emeraldHud/20 hover:bg-emeraldHud hover:text-void text-emeraldHud font-bold text-[11px] transition-all">
+              ✅ Accept
+            </button>
+            <button id="sim-magic-hold" type="button" class="py-1.5 rounded-lg bg-amberHud/20 hover:bg-amberHud hover:text-void text-amberHud font-bold text-[11px] transition-all">
+              ⏸️ Hold
+            </button>
+            <button id="sim-magic-decline" type="button" class="py-1.5 rounded-lg bg-crimsonHud/20 hover:bg-crimsonHud hover:text-white text-crimsonHud font-bold text-[11px] transition-all">
+              ❌ Decline
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 2: WALK-IN ENTRY MODAL (OWNER COMMAND)                            -->
+  <!-- ======================================================================= -->
+  <div id="walkin-entry-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+    <div class="hud-card rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeWalkInModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="font-display font-bold text-2xl text-white uppercase">Log Counter Walk-In</h3>
+      <p class="text-xs text-slate-400 mt-0.5">Add an offline walk-in player directly into today's ledger.</p>
+
+      <form id="walkin-entry-form" class="mt-4 space-y-3.5 text-sm">
+        <div>
+          <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1">Player Name *</label>
+          <input id="wi-gamer" type="text" required placeholder="e.g., Siddhesh (Counter)" class="w-full px-3.5 py-2.5 rounded-xl bg-void border border-white/15 text-white focus:outline-none focus:border-emeraldHud" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1">Phone (10-Digit)</label>
+            <input id="wi-phone" type="tel" maxlength="10" placeholder="98XXXXXXXX" class="w-full px-3.5 py-2.5 rounded-xl bg-void border border-white/15 font-mono text-white focus:outline-none focus:border-emeraldHud" />
+          </div>
+          <div>
+            <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1">Station</label>
+            <select id="wi-rig" class="w-full px-3.5 py-2.5 rounded-xl bg-void border border-white/15 text-white focus:outline-none focus:border-emeraldHud">
+              <option value="PC Rig">Pro RTX PC Rig</option>
+              <option value="PS5 Lounge Pod">PS5 Lounge Pod</option>
+              <option value="5-Stack Bootcamp">5-Stack Bootcamp</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1">Players (1–10)</label>
+            <input id="wi-people" type="number" min="1" max="10" value="1" class="w-full px-3.5 py-2.5 rounded-xl bg-void border border-white/15 font-mono text-white focus:outline-none focus:border-emeraldHud" />
+          </div>
+          <div>
+            <label class="block font-mono text-xs font-bold uppercase text-slate-400 mb-1">Hours (1–5)</label>
+            <input id="wi-hours" type="number" min="1" max="5" value="1" class="w-full px-3.5 py-2.5 rounded-xl bg-void border border-white/15 font-mono text-white focus:outline-none focus:border-emeraldHud" />
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl accent-bg text-void font-extrabold text-sm mt-2">
+          Add Confirmed Walk-In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 3: TWITCH LIVE TOURNAMENT STREAM DECK                             -->
+  <!-- ======================================================================= -->
+  <div id="twitch-deck-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+    <div class="hud-card border border-twitchHud/50 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-void border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-brands fa-twitch text-twitchHud text-xl"></i>
+          <span id="deck-brand-title" class="font-display font-bold text-lg text-white uppercase">APEX ARENA LIVE STREAM</span>
+          <span class="px-2 py-0.5 rounded bg-crimsonHud text-white font-mono text-[10px] font-bold uppercase animate-pulse">LIVE</span>
+        </div>
+        <button onclick="closeTwitchDeck()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="aspect-video bg-gradient-to-br from-[#190D2E] via-void to-[#071D1A] p-6 flex flex-col items-center justify-center text-center relative">
+        <div class="w-16 h-16 rounded-2xl bg-twitchHud/20 border border-twitchHud flex items-center justify-center mb-3 animate-pulse">
+          <i class="fa-solid fa-tower-broadcast text-twitchHud text-2xl"></i>
+        </div>
+        <h4 class="font-display font-bold text-2xl sm:text-3xl text-white uppercase">
+          Friday Night 5v5 Valorant Customs — Finals
+        </h4>
+        <p class="text-xs sm:text-sm text-slate-300 max-w-md mt-2">
+          Live POV broadcast from Stage Rigs #01–#10 • 1080p60 Low-Latency Arena Feed.
+        </p>
+        <div class="mt-5">
+          <a href="#reserve" onclick="closeTwitchDeck()" class="px-5 py-2.5 rounded-xl accent-bg text-void font-extrabold text-xs uppercase tracking-wider inline-flex items-center gap-2">
+            <i class="fa-solid fa-headset"></i> Book Stage Rig for Next Scrim
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- JAVASCRIPT ENGINE: WHITE-LABEL STATE, MAGIC WA LINKS & DUAL PORTALS     -->
+  <!-- ======================================================================= -->
+  <script>
+    const STATE_KEY = 'apex_arena_whitelabel_os_v1';
+
+    const DEFAULT_PLATFORM_STATE = {
+      brand: {
+        name: 'APEX ARENA',
+        subtitle: 'KALYAN • ESPORTS & PS5 LOUNGE',
+        ownerWhatsapp: '9820012345',
+        address: '2nd Floor, Orion Plaza, Khadakpada Circle, Kalyan West',
+        weekdayHours: '10:00 AM – 11:00 PM',
+        weekendHours: '09:00 AM – 01:00 AM',
+        accentHex: '#10B981',
+        accentGlow: 'rgba(16, 185, 129, 0.25)',
+        totalPCs: 20,
+        freePCs: 14,
+        totalPS5: 4,
+        freePS5: 3,
+        pcHourlyRate: 80,
+        ps5HourlyRate: 180,
+        pcCombo3HrRate: 200,
+        bootcampHourlyRate: 350
+      },
+      arenaOnline: true,
+      twitchBannerVisible: true,
+      bookings: [
+        {
+          id: 'APX-1041',
+          name: 'Rohan Kulkarni',
+          phone: '9820451120',
+          rig: '5-Stack Bootcamp',
+          people: 5,
+          game: 'Valorant',
+          date: new Date().toISOString().split('T')[0],
+          time: '06:00 PM',
+          duration: 2,
+          amount: 700,
+          status: 'Confirmed'
+        },
+        {
+          id: 'APX-1042',
+          name: 'Omkar & Squad',
+          phone: '9769883412',
+          rig: 'PS5 Lounge Pod',
+          people: 4,
+          game: 'EA Sports FC 25',
+          date: new Date().toISOString().split('T')[0],
+          time: '08:00 PM',
+          duration: 2,
+          amount: 360,
+          status: 'Pending'
+        },
+        {
+          id: 'APX-1043',
+          name: 'Atharva Patil',
+          phone: '9167220945',
+          rig: 'Pro RTX PC Rig',
+          people: 1,
+          game: 'Counter-Strike 2',
+          date: new Date().toISOString().split('T')[0],
+          time: '04:00 PM',
+          duration: 3,
+          amount: 200,
+          status: 'Completed'
+        }
+      ]
+    };
+
+    let state = loadPlatformState();
+    let adminUnlocked = false;
+    let currentAdminStatusFilter = 'All';
+
+    function loadPlatformState() {
+      try {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            ...DEFAULT_PLATFORM_STATE,
+            ...parsed,
+            brand: { ...DEFAULT_PLATFORM_STATE.brand, ...(parsed.brand || {}) }
+          };
+        }
+      } catch (err) {
+        console.warn('Local storage unavailable, using memory state.');
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_PLATFORM_STATE));
+    }
+
+    function persistState() {
+      try {
+        localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      } catch (err) {
+        console.warn('Unable to save to localStorage.');
+      }
+      renderEntirePlatform();
+    }
+
+    // ---------------------------------------------------------------------
+    // 1. MAGIC WHATSAPP REPLY MESSAGE BUILDER
+    // ---------------------------------------------------------------------
+    function buildCustomerWhatsAppReplyURL(booking, status) {
+      const cleanPhone = String(booking.phone || '').replace(/\D/g, '').slice(-10);
+      const targetPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : `91${state.brand.ownerWhatsapp}`;
+      const cafeName = state.brand.name;
+
+      let statusLine = '';
+      if (status === 'Confirmed') {
+        statusLine = `✅ *CONFIRMED!* Your station is locked and ready.\nPlease arrive 5 mins early and show Pass *#${booking.id}* at the counter.`;
+      } else if (status === 'On Hold') {
+        statusLine = `⏸️ *ON HOLD / PAUSED:* All rigs are currently occupied in the previous session. We have put Pass *#${booking.id}* on priority hold and will confirm your exact start time shortly!`;
+      } else if (status === 'Declined') {
+        statusLine = `❌ *SLOT UNAVAILABLE:* Sorry, all rigs for *${booking.time}* (${booking.date}) are fully booked. Please reply with an alternate time slot on *${cafeName}*!`;
+      } else {
+        statusLine = `🎮 Update regarding your *${cafeName}* booking *#${booking.id}*: Status is now *${status}*.`;
+      }
+
+      const message =
+        `Hey *${booking.name}*,\n` +
+        `${statusLine}\n\n` +
+        `📋 *Booking Summary (${cafeName})*\n` +
+        `• Pass ID: *#${booking.id}*\n` +
+        `• Station: *${booking.rig}* (${booking.people} Player${booking.people > 1 ? 's' : ''})\n` +
+        `• Slot: *${booking.date} at ${booking.time}* (${booking.duration} Hr)\n` +
+        `• Counter Tariff: *₹${booking.amount}*`;
+
+      return `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+    }
+
+    // ---------------------------------------------------------------------
+    // 2. URL MAGIC LINK INTERCEPTOR (?action=accept|hold|decline&id=...)
+    // ---------------------------------------------------------------------
+    function checkMagicUrlParameters() {
+      const params = new URLSearchParams(window.location.search);
+      const action = (params.get('action') || '').toLowerCase();
+      const idParam = (params.get('id') || '').replace('#', '').toUpperCase();
+
+      if (!action || !idParam) return;
+
+      const statusMap = {
+        accept: 'Confirmed',
+        hold: 'On Hold',
+        decline: 'Declined'
+      };
+      const newStatus = statusMap[action];
+      if (!newStatus) return;
+
+      let booking = state.bookings.find(b => b.id.toUpperCase() === idParam);
+
+      // Cross-device fallback: reconstruct booking from URL params if opened on owner's phone
+      if (!booking) {
+        booking = {
+          id: idParam,
+          name: params.get('name') || 'Gamer',
+          phone: params.get('phone') || '',
+          rig: params.get('rig') || 'Pro RTX PC Rig',
+          people: parseInt(params.get('people') || '1', 10),
+          game: params.get('game') || '',
+          date: params.get('date') || new Date().toISOString().split('T')[0],
+          time: params.get('time') || '06:00 PM',
+          duration: parseInt(params.get('dur') || '1', 10),
+          amount: parseInt(params.get('amt') || '80', 10),
+          status: newStatus
+        };
+        state.bookings.unshift(booking);
+      } else {
+        booking.status = newStatus;
+      }
+
+      persistState();
+      triggerMagicActionBanner(booking, newStatus);
+
+      // Clean URL without reloading page
+      if (window.history && window.history.replaceState) {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
+    function triggerMagicActionBanner(booking, newStatus) {
+      const banner = document.getElementById('magic-action-banner');
+      const headline = document.getElementById('magic-headline');
+      const subtext = document.getElementById('magic-subtext');
+      const idTag = document.getElementById('magic-booking-id');
+      const replyBtn = document.getElementById('magic-wa-reply-btn');
+
+      idTag.textContent = `#${booking.id}`;
+      headline.textContent = `Pass #${booking.id} (${booking.name}) → Marked as ${newStatus.toUpperCase()}`;
+      subtext.textContent = `Status synced across the platform. Click the green button to send the pre-typed WhatsApp notification to ${booking.name}:`;
+      replyBtn.href = buildCustomerWhatsAppReplyURL(booking, newStatus);
+
+      banner.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.dismissMagicBanner = function() {
+      document.getElementById('magic-action-banner').classList.add('hidden');
+    };
+
+    // ---------------------------------------------------------------------
+    // 3. GAME VAULT DATA & RENDERER
+    // ---------------------------------------------------------------------
+    const GAME_VAULT = [
+      { title: 'Valorant', genre: 'FPS / Tactical', platform: 'PC 240Hz', rig: 'PC Rig', badge: '240 FPS • Riot Ready', grad: 'from-rose-500/25 to-panel', icon: 'fa-crosshairs', color: 'text-crimsonHud' },
+      { title: 'Counter-Strike 2', genre: 'FPS / Tactical', platform: 'PC 240Hz', rig: 'PC Rig', badge: 'Faceit & Premier Ready', grad: 'from-amber-500/25 to-panel', icon: 'fa-bullseye', color: 'text-amberHud' },
+      { title: 'Spider-Man 2 & GOW', genre: 'PS5 Exclusives', platform: 'PS5 4K HDR', rig: 'PS5 Lounge Pod', badge: '60FPS Performance Mode', grad: 'from-violet-500/25 to-panel', icon: 'fa-mask', color: 'text-violetHud' },
+      { title: 'Gran Turismo 7', genre: 'PS5 Exclusives', platform: 'PS5 4K HDR', rig: 'PS5 Lounge Pod', badge: '4K Ray-Tracing Lounge', grad: 'from-sky-500/25 to-panel', icon: 'fa-gauge-max', color: 'text-cyanHud' },
+      { title: 'EA Sports FC 25', genre: 'Sports & Fighting', platform: 'PS5 4K HDR', rig: 'PS5 Lounge Pod', badge: '4-Controller Couch Co-op', grad: 'from-emerald-500/25 to-panel', icon: 'fa-futbol', color: 'text-emeraldHud' },
+      { title: 'Tekken 8 & MK 1', genre: 'Sports & Fighting', platform: 'PS5 / PC', rig: 'PS5 Lounge Pod', badge: '1v1 Arcade Tournament', grad: 'from-purple-500/25 to-panel', icon: 'fa-hand-fist', color: 'text-violetHud' },
+      { title: 'Grand Theft Auto V', genre: 'Co-op & Open World', platform: 'PC / PS5', rig: 'PC Rig', badge: 'GTA Online & RP Ready', grad: 'from-green-500/25 to-panel', icon: 'fa-car-burst', color: 'text-emeraldHud' },
+      { title: 'Apex Legends & BGMI', genre: 'Co-op & Open World', platform: 'PC 240Hz', rig: 'PC Rig', badge: 'Squad Lobbies Pre-Installed', grad: 'from-red-500/25 to-panel', icon: 'fa-parachute-box', color: 'text-crimsonHud' }
+    ];
+
+    let selectedVaultGenre = 'All';
+
+    function renderGameVault() {
+      const grid = document.getElementById('vault-grid');
+      const items = selectedVaultGenre === 'All'
+        ? GAME_VAULT
+        : GAME_VAULT.filter(g => g.genre === selectedVaultGenre);
+
+      grid.innerHTML = items.map(g => `
+        <div class="hud-card rounded-2xl overflow-hidden flex flex-col justify-between hover:-translate-y-1 hover:border-white/25 transition-all group">
+          <div class="h-28 bg-gradient-to-br ${g.grad} p-4 flex flex-col justify-between border-b border-white/10">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-void/80 text-slate-300 border border-white/10">${g.genre}</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white/10 accent-text font-bold">${g.platform}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <h3 class="font-display font-bold text-xl text-white group-hover:accent-text transition-colors">${g.title}</h3>
+              <i class="fa-solid ${g.icon} ${g.color} text-lg"></i>
+            </div>
+          </div>
+          <div class="p-4 flex items-center justify-between">
+            <span class="text-xs text-slate-400">${g.badge}</span>
+            <button onclick="bookForSpecificGame('${g.title}', '${g.rig}')" class="font-mono text-xs font-bold accent-text hover:underline shrink-0 ml-2">
+              Book &rarr;
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.querySelectorAll('.vfilter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.vfilter-btn').forEach(b => {
+          b.classList.remove('active', 'accent-bg', 'text-void', 'font-bold');
+          b.classList.add('bg-panel', 'text-slate-300', 'font-semibold', 'border', 'border-white/10');
+        });
+        btn.classList.add('active', 'accent-bg', 'text-void', 'font-bold');
+        btn.classList.remove('bg-panel', 'text-slate-300', 'font-semibold', 'border', 'border-white/10');
+        selectedVaultGenre = btn.dataset.genre;
+        renderGameVault();
+      });
+    });
+
+    window.bookForSpecificGame = function(gameTitle, rigClass) {
+      selectRigClass(rigClass);
+      document.getElementById('book-game').value = gameTitle;
+      document.getElementById('reserve').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // ---------------------------------------------------------------------
+    // 4. BOOKING CALCULATOR & BOARDING PASS GENERATOR
+    // ---------------------------------------------------------------------
+    const bookingDraft = {
+      rig: 'PC Rig',
+      people: 1,
+      duration: 1
+    };
+
+    function computeSessionTariff(rig, people, duration) {
+      const b = state.brand;
+      let total = 0;
+      let promoLabel = '';
+
+      if (rig === 'PS5 Lounge Pod') {
+        const pods = Math.ceil(people / 4);
+        total = b.ps5HourlyRate * pods * duration;
+        promoLabel = `${pods} PS5 Pod${pods > 1 ? 's' : ''} (Up to 4P/pod)`;
+      } else if (rig === '5-Stack Bootcamp') {
+        const packs = Math.ceil(people / 5);
+        total = b.bootcampHourlyRate * packs * duration;
+        promoLabel = `5-Stack Squad Rate (₹${b.bootcampHourlyRate}/hr)`;
+      } else {
+        // Pro RTX PC Rig
+        if (people === 5) {
+          total = b.bootcampHourlyRate * duration;
+          promoLabel = `5-Stack Bootcamp Rate Applied (₹${b.bootcampHourlyRate}/hr)`;
+        } else if (duration === 3) {
+          total = b.pcCombo3HrRate * people;
+          promoLabel = `3-Hr Grinder Pass Applied (₹${b.pcCombo3HrRate}/PC)`;
+        } else {
+          total = b.pcHourlyRate * people * duration;
+        }
+      }
+      return { total, promoLabel };
+    }
+
+    window.selectRigClass = function(rig) {
+      bookingDraft.rig = rig;
+      const map = {
+        'PC Rig': { el: 'rig-btn-pc', border: 'border-cyanHud bg-cyanHud/10' },
+        'PS5 Lounge Pod': { el: 'rig-btn-ps5', border: 'border-violetHud bg-violetHud/10' },
+        '5-Stack Bootcamp': { el: 'rig-btn-boot', border: 'border-amberHud bg-amberHud/10' }
+      };
+
+      Object.keys(map).forEach(k => {
+        const btn = document.getElementById(map[k].el);
+        if (k === rig) {
+          btn.className = `rig-select-btn p-3.5 rounded-xl border-2 ${map[k].border} text-left transition-all`;
+        } else {
+          btn.className = 'rig-select-btn p-3.5 rounded-xl border border-white/10 bg-void/70 text-left hover:border-white/25 transition-all';
+        }
+      });
+
+      if (rig === '5-Stack Bootcamp' && bookingDraft.people < 5) {
+        bookingDraft.people = 5;
+      }
+      refreshBookingEstimate();
+    };
+
+    window.changeHeadcount = function(delta) {
+      const next = bookingDraft.people + delta;
+      if (next >= 1 && next <= 10) {
+        bookingDraft.people = next;
+        refreshBookingEstimate();
+      }
+    };
+
+    window.quickSelectBooking = function(rig, people, duration) {
+      selectRigClass(rig);
+      bookingDraft.people = people;
+      bookingDraft.duration = duration;
+      document.getElementById('book-duration').value = String(duration);
+      refreshBookingEstimate();
+      document.getElementById('reserve').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function refreshBookingEstimate() {
+      bookingDraft.duration = parseInt(document.getElementById('book-duration').value, 10) || 1;
+      const dateVal = document.getElementById('book-date').value;
+      const timeVal = document.getElementById('book-time').value;
+      const { total, promoLabel } = computeSessionTariff(bookingDraft.rig, bookingDraft.people, bookingDraft.duration);
+
+      document.getElementById('book-people-num').textContent = bookingDraft.people;
+
+      let unitLabel = `${bookingDraft.people} PC Rig${bookingDraft.people > 1 ? 's' : ''}`;
+      if (bookingDraft.rig === 'PS5 Lounge Pod') {
+        const pods = Math.ceil(bookingDraft.people / 4);
+        unitLabel = `${pods} PS5 Pod${pods > 1 ? 's' : ''}`;
+      } else if (bookingDraft.rig === '5-Stack Bootcamp') {
+        unitLabel = '5-PC Bootcamp Row';
+      }
+      document.getElementById('book-units-label').textContent = unitLabel;
+
+      document.getElementById('est-rig').textContent = bookingDraft.rig;
+      document.getElementById('est-squad').textContent = `${bookingDraft.people} Player(s) • ${unitLabel}`;
+
+      const dateNice = dateVal
+        ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+        : 'Today';
+      document.getElementById('est-slot').textContent = `${dateNice} • ${timeVal}`;
+      document.getElementById('est-duration').textContent = `${bookingDraft.duration} Hour(s)`;
+      document.getElementById('est-total').textContent = `₹${total}`;
+      document.getElementById('est-split').textContent = `₹${Math.round(total / bookingDraft.people)} per player`;
+
+      const discRow = document.getElementById('est-discount-row');
+      if (promoLabel) {
+        discRow.classList.remove('hidden');
+        document.getElementById('est-discount-text').textContent = promoLabel;
+      } else {
+        discRow.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('book-duration').addEventListener('change', refreshBookingEstimate);
+    document.getElementById('book-time').addEventListener('change', refreshBookingEstimate);
+    document.getElementById('book-date').addEventListener('change', refreshBookingEstimate);
+
+    // Form Submit -> Create Pass + Build Magic WhatsApp Links
+    document.getElementById('reservation-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('book-name').value.trim();
+      const rawPhone = document.getElementById('book-phone').value.replace(/\D/g, '');
+      const game = document.getElementById('book-game').value.trim() || 'Open Library';
+      const errBox = document.getElementById('book-error-box');
+
+      if (!name || rawPhone.length < 10) {
+        errBox.classList.remove('hidden');
+        return;
+      }
+      errBox.classList.add('hidden');
+
+      const phone10 = rawPhone.slice(-10);
+      const dateVal = document.getElementById('book-date').value;
+      const timeVal = document.getElementById('book-time').value;
+      const { total } = computeSessionTariff(bookingDraft.rig, bookingDraft.people, bookingDraft.duration);
+      const passId = 'APX-' + Math.floor(1100 + Math.random() * 8800);
+
+      const newEntry = {
+        id: passId,
+        name,
+        phone: phone10,
+        rig: bookingDraft.rig,
+        people: bookingDraft.people,
+        game,
+        date: dateVal,
+        time: timeVal,
+        duration: bookingDraft.duration,
+        amount: total,
+        status: 'Pending'
+      };
+
+      state.bookings.unshift(newEntry);
+      persistState();
+
+      // Populate Boarding Pass Modal
+      document.getElementById('bp-id').textContent = `#${passId}`;
+      document.getElementById('bp-gamer').textContent = `${name} (+91 ${phone10})`;
+      document.getElementById('bp-rig').textContent = `${bookingDraft.rig} • ${bookingDraft.people}P`;
+      document.getElementById('bp-time').textContent = `${dateVal} • ${timeVal} (${bookingDraft.duration} Hr)`;
+      document.getElementById('bp-total').textContent = `₹${total}`;
+
+      // Build Magic 1-Tap URLs for Owner
+      const baseOrigin = window.location.origin + window.location.pathname;
+      const sharedQuery = `id=${encodeURIComponent(passId)}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone10)}&rig=${encodeURIComponent(bookingDraft.rig)}&people=${bookingDraft.people}&date=${encodeURIComponent(dateVal)}&time=${encodeURIComponent(timeVal)}&dur=${bookingDraft.duration}&amt=${total}`;
+
+      const acceptUrl = `${baseOrigin}?action=accept&${sharedQuery}`;
+      const holdUrl = `${baseOrigin}?action=hold&${sharedQuery}`;
+      const declineUrl = `${baseOrigin}?action=decline&${sharedQuery}`;
+
+      const ownerWaNumber = '91' + state.brand.ownerWhatsapp.replace(/\D/g, '').slice(-10);
+      const waPayload =
+        `🎮 *NEW BOOKING — ${state.brand.name}*\n` +
+        `Pass ID: *#${passId}*\n` +
+        `Gamer: *${name}* (${phone10})\n` +
+        `Station: *${bookingDraft.rig}* (${bookingDraft.people} Player${bookingDraft.people > 1 ? 's' : ''})\n` +
+        `Game: *${game}*\n` +
+        `Slot: *${dateVal} at ${timeVal}* (${bookingDraft.duration} Hr)\n` +
+        `Counter Tariff: *₹${total}*\n\n` +
+        `⚡ *OWNER 1-TAP ACTIONS:*\n` +
+        `✅ Accept: ${acceptUrl}\n` +
+        `⏸️ Hold: ${holdUrl}\n` +
+        `❌ Decline: ${declineUrl}`;
+
+      document.getElementById('bp-wa-link').href = `https://wa.me/${ownerWaNumber}?text=${encodeURIComponent(waPayload)}`;
+
+      // Wire Simulator Buttons inside the Modal so user can test Magic Links immediately
+      document.getElementById('sim-magic-accept').onclick = () => {
+        closeBoardingPass();
+        newEntry.status = 'Confirmed';
+        persistState();
+        triggerMagicActionBanner(newEntry, 'Confirmed');
+      };
+      document.getElementById('sim-magic-hold').onclick = () => {
+        closeBoardingPass();
+        newEntry.status = 'On Hold';
+        persistState();
+        triggerMagicActionBanner(newEntry, 'On Hold');
+      };
+      document.getElementById('sim-magic-decline').onclick = () => {
+        closeBoardingPass();
+        newEntry.status = 'Declined';
+        persistState();
+        triggerMagicActionBanner(newEntry, 'Declined');
+      };
+
+      const modal = document.getElementById('boarding-pass-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.getElementById('book-name').value = '';
+      document.getElementById('book-phone').value = '';
+      document.getElementById('book-game').value = '';
+    });
+
+    window.closeBoardingPass = function() {
+      const m = document.getElementById('boarding-pass-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    };
+
+    // ---------------------------------------------------------------------
+    // 5. LIVE CUSTOMER BOOKING TRACKER
+    // ---------------------------------------------------------------------
+    window.scrollToTracker = function() {
+      document.getElementById('tracker').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('tracker-query').focus();
+    };
+
+    document.getElementById('tracker-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = document.getElementById('tracker-query').value.trim().replace('#', '').toUpperCase();
+      const outBox = document.getElementById('tracker-result-box');
+      if (!q) return;
+
+      const match = state.bookings.find(b =>
+        b.id.toUpperCase() === q || b.phone.includes(q)
+      );
+
+      outBox.classList.remove('hidden');
+
+      if (!match) {
+        outBox.innerHTML = `
+          <div class="p-4 rounded-xl bg-crimsonHud/10 border border-crimsonHud/30 text-xs text-rose-300 flex items-center justify-between">
+            <span><i class="fa-solid fa-circle-xmark mr-1.5"></i> No booking found for <strong>${q}</strong>. Try <strong>APX-1042</strong> or your 10-digit mobile number.</span>
+          </div>
+        `;
+        return;
+      }
+
+      const badgeMap = {
+        Pending: 'bg-amberHud/20 text-amberHud border-amberHud/40',
+        Confirmed: 'bg-emeraldHud/20 text-emeraldHud border-emeraldHud/40',
+        'On Hold': 'bg-violetHud/20 text-violetHud border-violetHud/40',
+        Declined: 'bg-crimsonHud/20 text-crimsonHud border-crimsonHud/40',
+        Completed: 'bg-cyanHud/20 text-cyanHud border-cyanHud/40'
+      };
+
+      const ownerWa = '91' + state.brand.ownerWhatsapp.replace(/\D/g, '').slice(-10);
+      const pingMsg = encodeURIComponent(`Hi ${state.brand.name}, checking status for Pass #${match.id} (${match.name} - ${match.time}).`);
+
+      outBox.innerHTML = `
+        <div class="p-4 rounded-xl bg-void/90 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2.5">
+              <span class="font-mono font-bold text-sm accent-text">#${match.id}</span>
+              <span class="px-2.5 py-0.5 rounded-full border font-mono text-[11px] font-bold uppercase ${badgeMap[match.status] || badgeMap.Pending}">
+                ${match.status}
+              </span>
+            </div>
+            <div class="text-sm font-bold text-white">${match.name} • ${match.rig} (${match.people}P)</div>
+            <div class="font-mono text-xs text-slate-400">${match.date} at ${match.time} • ${match.duration} Hr • Total ₹${match.amount}</div>
+          </div>
+
+          <a href="https://wa.me/${ownerWa}?text=${pingMsg}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-emeraldHud hover:text-void border border-white/15 text-xs font-bold text-slate-200 flex items-center justify-center gap-2 shrink-0 transition-all">
+            <i class="fa-brands fa-whatsapp text-emeraldHud"></i>
+            <span>Ping Cafe Desk</span>
+          </a>
+        </div>
+      `;
+    });
+
+    // ---------------------------------------------------------------------
+    // 6. DUAL PORTAL SWITCHER & OWNER COMMAND CENTER
+    // ---------------------------------------------------------------------
+    window.switchPortal = function(portal) {
+      const cust = document.getElementById('portal-customer');
+      const owner = document.getElementById('portal-owner');
+      const btnCust = document.getElementById('nav-role-customer');
+      const btnOwner = document.getElementById('nav-role-owner');
+
+      if (portal === 'customer') {
+        cust.classList.remove('hidden');
+        owner.classList.add('hidden');
+        btnCust.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 accent-bg text-void accent-shadow';
+        btnOwner.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white';
+      } else {
+        cust.classList.add('hidden');
+        owner.classList.remove('hidden');
+        btnOwner.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-violetHud text-white';
+        btnCust.className = 'px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white';
+        refreshAdminLockScreen();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function refreshAdminLockScreen() {
+      const lock = document.getElementById('admin-lock-screen');
+      const work = document.getElementById('admin-workspace');
+      if (adminUnlocked) {
+        lock.classList.add('hidden');
+        work.classList.remove('hidden');
+        populateWhiteLabelInputs();
+        renderEntirePlatform();
+      } else {
+        lock.classList.remove('hidden');
+        work.classList.add('hidden');
+      }
+    }
+
+    window.unlockAdminWithPin = function() {
+      const val = document.getElementById('admin-pin-field').value.trim();
+      if (val === '1234') {
+        adminUnlocked = true;
+        document.getElementById('admin-pin-err').classList.add('hidden');
+        document.getElementById('admin-pin-field').value = '';
+        refreshAdminLockScreen();
+      } else {
+        document.getElementById('admin-pin-err').classList.remove('hidden');
+      }
+    };
+
+    window.instantDemoAdmin = function() {
+      adminUnlocked = true;
+      document.getElementById('admin-pin-err').classList.add('hidden');
+      refreshAdminLockScreen();
+    };
+
+    window.switchAdminTab = function(tab) {
+      const opsTab = document.getElementById('admin-tab-ops');
+      const brandTab = document.getElementById('admin-tab-brand');
+      const btnOps = document.getElementById('tab-btn-ops');
+      const btnBrand = document.getElementById('tab-btn-brand');
+
+      if (tab === 'ops') {
+        opsTab.classList.remove('hidden');
+        brandTab.classList.add('hidden');
+        btnOps.className = 'px-3.5 py-2 rounded-lg text-xs font-bold bg-violetHud text-white transition-all';
+        btnBrand.className = 'px-3.5 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition-all';
+      } else {
+        opsTab.classList.add('hidden');
+        brandTab.classList.remove('hidden');
+        btnBrand.className = 'px-3.5 py-2 rounded-lg text-xs font-bold bg-violetHud text-white transition-all';
+        btnOps.className = 'px-3.5 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition-all';
+        populateWhiteLabelInputs();
+      }
+    };
+
+    // Owner 1-Tap Status + WhatsApp Dispatch
+    window.dispatchBookingAction = function(bookingId, newStatus, openWhatsApp) {
+      const b = state.bookings.find(item => item.id === bookingId);
+      if (!b) return;
+      b.status = newStatus;
+      persistState();
+
+      if (openWhatsApp) {
+        const waUrl = buildCustomerWhatsAppReplyURL(b, newStatus);
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+
+    window.removeBookingEntry = function(bookingId) {
+      state.bookings = state.bookings.filter(item => item.id !== bookingId);
+      persistState();
+    };
+
+    window.filterAdminList = function(statusFilter) {
+      currentAdminStatusFilter = statusFilter;
+      document.querySelectorAll('.ast-btn').forEach(btn => {
+        if (btn.dataset.st === statusFilter) {
+          btn.className = 'ast-btn active px-3 py-1.5 rounded-lg text-xs font-bold accent-bg text-void';
+        } else {
+          btn.className = 'ast-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-panel text-slate-300 border border-white/10';
+        }
+      });
+      renderAdminBookingsList();
+    };
+
+    // Floor & Master Toggles
+    window.toggleArenaMaster = function() {
+      state.arenaOnline = !state.arenaOnline;
+      persistState();
+    };
+
+    window.stepRigInventory = function(type, delta) {
+      if (type === 'pc') {
+        const next = state.brand.freePCs + delta;
+        if (next >= 0 && next <= state.brand.totalPCs) state.brand.freePCs = next;
+      } else {
+        const next = state.brand.freePS5 + delta;
+        if (next >= 0 && next <= state.brand.totalPS5) state.brand.freePS5 = next;
+      }
+      persistState();
+    };
+
+    window.toggleTwitchVisibility = function() {
+      state.twitchBannerVisible = !state.twitchBannerVisible;
+      persistState();
+    };
+
+    // Walk-in Modal Handlers
+    window.openWalkInModal = function() {
+      const m = document.getElementById('walkin-entry-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    };
+    window.closeWalkInModal = function() {
+      const m = document.getElementById('walkin-entry-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    };
+
+    document.getElementById('walkin-entry-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('wi-gamer').value.trim();
+      const phone = document.getElementById('wi-phone').value.replace(/\D/g, '').slice(-10) || 'Counter';
+      const rig = document.getElementById('wi-rig').value;
+      const people = Math.min(10, Math.max(1, parseInt(document.getElementById('wi-people').value, 10) || 1));
+      const duration = Math.min(5, Math.max(1, parseInt(document.getElementById('wi-hours').value, 10) || 1));
+      const { total } = computeSessionTariff(rig, people, duration);
+
+      const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      state.bookings.unshift({
+        id: 'WLK-' + Math.floor(100 + Math.random() * 899),
+        name,
+        phone,
+        rig,
+        people,
+        game: 'Walk-In Session',
+        date: new Date().toISOString().split('T')[0],
+        time: nowStr,
+        duration,
+        amount: total,
+        status: 'Confirmed'
+      });
+
+      persistState();
+      document.getElementById('wi-gamer').value = '';
+      document.getElementById('wi-phone').value = '';
+      closeWalkInModal();
+    });
+
+    // CSV Export
+    window.downloadCSVReport = function() {
+      const headers = ['Pass ID', 'Gamer', 'Phone', 'Station', 'Players', 'Date', 'Slot', 'Hours', 'Tariff (INR)', 'Status'];
+      const rows = state.bookings.map(b => [
+        b.id, `"${b.name}"`, b.phone, `"${b.rig}"`, b.people, b.date, b.time, b.duration, b.amount, b.status
+      ]);
+      const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const a = document.createElement('a');
+      a.href = encodeURI(csv);
+      a.download = `${state.brand.name.toLowerCase().replace(/\s+/g, '_')}_ledger.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    // ---------------------------------------------------------------------
+    // 7. WHITE-LABEL REBRAND CONFIGURATOR
+    // ---------------------------------------------------------------------
+    function populateWhiteLabelInputs() {
+      const b = state.brand;
+      document.getElementById('wl-name').value = b.name;
+      document.getElementById('wl-sub').value = b.subtitle;
+      document.getElementById('wl-wa').value = b.ownerWhatsapp;
+      document.getElementById('wl-address').value = b.address;
+      document.getElementById('wl-weekday').value = b.weekdayHours;
+      document.getElementById('wl-weekend').value = b.weekendHours;
+      document.getElementById('wl-total-pc').value = b.totalPCs;
+      document.getElementById('wl-total-ps5').value = b.totalPS5;
+      document.getElementById('wl-rate-pc').value = b.pcHourlyRate;
+      document.getElementById('wl-rate-ps5').value = b.ps5HourlyRate;
+      document.getElementById('wl-rate-combo').value = b.pcCombo3HrRate;
+    }
+
+    window.setBrandTheme = function(hex, glow) {
+      state.brand.accentHex = hex;
+      state.brand.accentGlow = glow;
+      persistState();
+    };
+
+    document.getElementById('whitelabel-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const b = state.brand;
+      b.name = document.getElementById('wl-name').value.trim() || 'APEX ARENA';
+      b.subtitle = document.getElementById('wl-sub').value.trim() || 'ESPORTS & PS5 LOUNGE';
+      const waRaw = document.getElementById('wl-wa').value.replace(/\D/g, '');
+      if (waRaw.length >= 10) b.ownerWhatsapp = waRaw.slice(-10);
+
+      b.address = document.getElementById('wl-address').value.trim() || b.address;
+      b.weekdayHours = document.getElementById('wl-weekday').value.trim() || b.weekdayHours;
+      b.weekendHours = document.getElementById('wl-weekend').value.trim() || b.weekendHours;
+
+      b.totalPCs = Math.max(1, parseInt(document.getElementById('wl-total-pc').value, 10) || 20);
+      b.freePCs = Math.min(b.freePCs, b.totalPCs);
+      b.totalPS5 = Math.max(0, parseInt(document.getElementById('wl-total-ps5').value, 10) || 4);
+      b.freePS5 = Math.min(b.freePS5, b.totalPS5);
+
+      b.pcHourlyRate = Math.max(10, parseInt(document.getElementById('wl-rate-pc').value, 10) || 80);
+      b.ps5HourlyRate = Math.max(20, parseInt(document.getElementById('wl-rate-ps5').value, 10) || 180);
+      b.pcCombo3HrRate = Math.max(30, parseInt(document.getElementById('wl-rate-combo').value, 10) || 200);
+      b.bootcampHourlyRate = Math.round(b.pcHourlyRate * 4.375 / 10) * 10;
+
+      persistState();
+
+      const toast = document.getElementById('wl-saved-toast');
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    });
+
+    window.resetWhiteLabelDefaults = function() {
+      state = JSON.parse(JSON.stringify(DEFAULT_PLATFORM_STATE));
+      persistState();
+      populateWhiteLabelInputs();
+    };
+
+    // Twitch Deck Modal
+    window.openTwitchDeck = function() {
+      const m = document.getElementById('twitch-deck-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    };
+    window.closeTwitchDeck = function() {
+      const m = document.getElementById('twitch-deck-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    };
+
+    // ---------------------------------------------------------------------
+    // 8. MASTER RENDER & SYNC ENGINE
+    // ---------------------------------------------------------------------
+    function renderEntirePlatform() {
+      const b = state.brand;
+
+      // Apply CSS Theme Variables
+      document.documentElement.style.setProperty('--accent-primary', b.accentHex);
+      document.documentElement.style.setProperty('--accent-glow', b.accentGlow);
+
+      // Update Brand Texts
+      document.title = `${b.name} // Esports & Console Lounge`;
+      document.getElementById('brand-header-name').textContent = b.name;
+      document.getElementById('brand-header-sub').textContent = b.subtitle;
+      document.getElementById('admin-cafe-title-tag').textContent = b.name;
+      document.getElementById('deck-brand-title').textContent = `${b.name} LIVE STREAM`;
+      document.getElementById('footer-brand-copy').textContent = `© 2026 ${b.name} • Powered by White-Label Gaming Cafe OS`;
+
+      document.getElementById('display-weekday-hours').textContent = b.weekdayHours;
+      document.getElementById('display-weekend-hours').textContent = b.weekendHours;
+      document.getElementById('display-cafe-address').textContent = b.address;
+
+      // Sync Tariffs across Hero, Pricing Cards & Booking Selector
+      document.getElementById('hero-rate-display').textContent = `₹${b.pcHourlyRate} / hr`;
+      document.getElementById('tariff-pc-solo').textContent = `₹${b.pcHourlyRate}`;
+      document.getElementById('tariff-pc-combo').textContent = `₹${b.pcCombo3HrRate}`;
+      document.getElementById('tariff-ps5-pod').textContent = `₹${b.ps5HourlyRate}`;
+      document.getElementById('tariff-bootcamp').textContent = `₹${b.bootcampHourlyRate}`;
+
+      const regular3Hr = b.pcHourlyRate * 3;
+      const savePct = regular3Hr > b.pcCombo3HrRate
+        ? Math.round(((regular3Hr - b.pcCombo3HrRate) / regular3Hr) * 100)
+        : 15;
+      document.getElementById('tariff-combo-badge').textContent = `SAVE ${savePct}%`;
+
+      document.getElementById('rig-card-pc-rate').textContent = `₹${b.pcHourlyRate} / hr / PC`;
+      document.getElementById('rig-card-ps5-rate').textContent = `₹${b.ps5HourlyRate} / hr (4P)`;
+      document.getElementById('rig-card-boot-rate').textContent = `₹${b.bootcampHourlyRate} / hr (5 PCs)`;
+
+      // Sync Arena Online/Offline Status
+      const heroPing = document.getElementById('hero-status-ping');
+      const heroDot = document.getElementById('hero-status-dot');
+      const heroTxt = document.getElementById('hero-status-text');
+      const admDot = document.getElementById('admin-master-dot');
+      const admTxt = document.getElementById('admin-master-text');
+
+      if (state.arenaOnline) {
+        heroPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emeraldHud opacity-75';
+        heroDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-emeraldHud';
+        heroTxt.textContent = 'ARENA ONLINE • ACCEPTING INSTANT BOOKINGS';
+        heroTxt.className = 'font-mono text-xs font-bold tracking-wider text-emeraldHud uppercase';
+
+        admDot.className = 'w-2.5 h-2.5 rounded-full bg-emeraldHud';
+        admTxt.textContent = 'ONLINE';
+        admTxt.className = 'font-display font-bold text-2xl text-emeraldHud';
+      } else {
+        heroPing.className = 'hidden';
+        heroDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-crimsonHud';
+        heroTxt.textContent = 'ARENA OFFLINE • ADVANCE SLOT RESERVATIONS OPEN';
+        heroTxt.className = 'font-mono text-xs font-bold tracking-wider text-crimsonHud uppercase';
+
+        admDot.className = 'w-2.5 h-2.5 rounded-full bg-crimsonHud';
+        admTxt.textContent = 'OFFLINE';
+        admTxt.className = 'font-display font-bold text-2xl text-crimsonHud';
+      }
+
+      // Sync Twitch Banner
+      const twitchBar = document.getElementById('cust-twitch-bar');
+      const twitchCtrl = document.getElementById('ctrl-twitch-state');
+      if (state.twitchBannerVisible) {
+        twitchBar.classList.remove('hidden');
+        twitchCtrl.textContent = 'Twitch Banner: ON';
+      } else {
+        twitchBar.classList.add('hidden');
+        twitchCtrl.textContent = 'Twitch Banner: OFF';
+      }
+
+      // Sync Floor Radar & Admin Inventory
+      document.getElementById('radar-pc-text').textContent = `${b.freePCs} / ${b.totalPCs} FREE`;
+      const pcPct = b.totalPCs > 0 ? Math.round((b.freePCs / b.totalPCs) * 100) : 0;
+      document.getElementById('radar-pc-bar').style.width = `${pcPct}%`;
+
+      document.getElementById('radar-ps5-text').textContent = `${b.freePS5} / ${b.totalPS5} FREE`;
+      const ps5Pct = b.totalPS5 > 0 ? Math.round((b.freePS5 / b.totalPS5) * 100) : 0;
+      document.getElementById('radar-ps5-bar').style.width = `${ps5Pct}%`;
+
+      document.getElementById('ctrl-free-pc').textContent = b.freePCs;
+      document.getElementById('ctrl-free-ps5').textContent = b.freePS5;
+
+      // Sync Admin KPIs
+      const activeRevenue = state.bookings
+        .filter(item => item.status === 'Confirmed' || item.status === 'Completed')
+        .reduce((acc, item) => acc + item.amount, 0);
+      const pendingCount = state.bookings.filter(item => item.status === 'Pending').length;
+
+      const totalStations = b.totalPCs + b.totalPS5;
+      const busyStations = Math.max(0, totalStations - (b.freePCs + b.freePS5));
+      const occPct = totalStations > 0 ? Math.round((busyStations / totalStations) * 100) : 0;
+
+      document.getElementById('admin-kpi-rev').textContent = `₹${activeRevenue.toLocaleString('en-IN')}`;
+      document.getElementById('admin-kpi-pending').textContent = pendingCount;
+      document.getElementById('admin-kpi-occ').textContent = `${occPct}%`;
+      document.getElementById('admin-kpi-rigs-sub').textContent = `${b.freePCs}/${b.totalPCs} PCs • ${b.freePS5}/${b.totalPS5} PS5s Free`;
+
+      const topPill = document.getElementById('top-pending-pill');
+      topPill.textContent = pendingCount;
+      topPill.classList.toggle('hidden', pendingCount === 0);
+
+      refreshBookingEstimate();
+      renderAdminBookingsList();
+    }
+
+    function getStatusPillHTML(status) {
+      const styles = {
+        Pending: 'bg-amberHud/15 text-amberHud border-amberHud/30',
+        Confirmed: 'bg-emeraldHud/15 text-emeraldHud border-emeraldHud/30',
+        'On Hold': 'bg-violetHud/15 text-violetHud border-violetHud/30',
+        Declined: 'bg-crimsonHud/15 text-crimsonHud border-crimsonHud/30',
+        Completed: 'bg-cyanHud/15 text-cyanHud border-cyanHud/30'
+      };
+      return `<span class="px-2.5 py-1 rounded-lg border font-mono text-[11px] font-bold ${styles[status] || styles.Pending}">${status}</span>`;
+    }
+
+    function renderAdminBookingsList() {
+      const filtered = currentAdminStatusFilter === 'All'
+        ? state.bookings
+        : state.bookings.filter(b => b.status === currentAdminStatusFilter);
+
+      const tbody = document.getElementById('admin-table-rows');
+      const mobileList = document.getElementById('admin-mobile-cards');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500 text-sm">No reservations under "${currentAdminStatusFilter}".</td></tr>`;
+        mobileList.innerHTML = `<div class="hud-card rounded-2xl p-6 text-center text-slate-500 text-sm">No reservations found.</div>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(b => `
+        <tr class="hover:bg-white/[0.02] transition-colors">
+          <td class="py-3.5 px-4 font-mono font-bold text-xs accent-text">#${b.id}</td>
+          <td class="py-3.5 px-4">
+            <div class="font-bold text-white">${b.name}</div>
+            <div class="font-mono text-xs text-slate-400">${b.phone}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-200">${b.rig}</div>
+            <div class="font-mono text-xs text-slate-400">${b.people} Player(s) • ${b.game || 'Open'}</div>
+          </td>
+          <td class="py-3.5 px-4 font-mono text-xs text-slate-300">
+            <div>${b.date} • <strong class="text-white">${b.time}</strong></div>
+            <div class="text-slate-400">${b.duration} Hour(s)</div>
+          </td>
+          <td class="py-3.5 px-4 font-mono font-bold text-base text-white">₹${b.amount}</td>
+          <td class="py-3.5 px-4">${getStatusPillHTML(b.status)}</td>
+          <td class="py-3.5 px-4 text-right">
+            <div class="inline-flex flex-wrap justify-end gap-1.5">
+              <button onclick="dispatchBookingAction('${b.id}', 'Confirmed', true)" class="px-2.5 py-1.5 rounded-lg bg-emeraldHud/20 hover:bg-emeraldHud hover:text-void text-emeraldHud font-bold text-xs transition-all" title="Confirm & Send WhatsApp">
+                <i class="fa-brands fa-whatsapp mr-1"></i>Accept
+              </button>
+              <button onclick="dispatchBookingAction('${b.id}', 'On Hold', true)" class="px-2.5 py-1.5 rounded-lg bg-amberHud/20 hover:bg-amberHud hover:text-void text-amberHud font-bold text-xs transition-all" title="Put On Hold & Send WhatsApp">
+                Hold
+              </button>
+              <button onclick="dispatchBookingAction('${b.id}', 'Declined', true)" class="px-2.5 py-1.5 rounded-lg bg-crimsonHud/20 hover:bg-crimsonHud hover:text-white text-crimsonHud font-bold text-xs transition-all" title="Decline & Send WhatsApp">
+                Decline
+              </button>
+              <button onclick="dispatchBookingAction('${b.id}', 'Completed', false)" class="px-2.5 py-1.5 rounded-lg bg-cyanHud/15 hover:bg-cyanHud hover:text-void text-cyanHud font-bold text-xs transition-all" title="Mark Paid">
+                Paid
+              </button>
+              <button onclick="removeBookingEntry('${b.id}')" class="px-2 py-1.5 rounded-lg bg-white/5 hover:bg-crimsonHud text-slate-400 hover:text-white text-xs" title="Delete">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      mobileList.innerHTML = filtered.map(b => `
+        <div class="hud-card rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-xs accent-text">#${b.id}</span>
+            ${getStatusPillHTML(b.status)}
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold text-white text-base">${b.name}</div>
+              <div class="font-mono text-xs text-slate-400">${b.phone} • ${b.rig} (${b.people}P)</div>
+            </div>
+            <div class="font-mono font-bold text-xl accent-text">₹${b.amount}</div>
+          </div>
+          <div class="font-mono text-xs text-slate-300 bg-void/80 px-3 py-2 rounded-xl border border-white/10">
+            ${b.date} at <strong>${b.time}</strong> • ${b.duration} Hr
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <button onclick="dispatchBookingAction('${b.id}', 'Confirmed', true)" class="py-2 rounded-xl bg-emeraldHud/20 text-emeraldHud font-bold text-xs">
+              <i class="fa-brands fa-whatsapp mr-1"></i>Accept
+            </button>
+            <button onclick="dispatchBookingAction('${b.id}', 'On Hold', true)" class="py-2 rounded-xl bg-amberHud/20 text-amberHud font-bold text-xs">
+              Hold
+            </button>
+            <button onclick="dispatchBookingAction('${b.id}', 'Declined', true)" class="py-2 rounded-xl bg-crimsonHud/20 text-crimsonHud font-bold text-xs">
+              Decline
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Boot Application
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const dateEl = document.getElementById('book-date');
+      dateEl.value = today;
+      dateEl.min = today;
+
+      renderGameVault();
+      renderEntirePlatform();
+      checkMagicUrlParameters();
+    });
+  </script>
+</body>
+</html>
